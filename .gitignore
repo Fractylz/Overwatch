@@ -1,0 +1,33 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Trained models & generated outputs
+artifacts/
+*.pt
+*.joblib
+
+# YOLO run: batch mosaics are made of the training/val images themselves
+watch_detector_run/train_batch*.jpg
+watch_detector_run/val_batch*.jpg
+watch_detector_run/weights/
+.pytest_cache/
+
+# Data (training images & scraped data — keep it local)
+data/images/
+data/scraped/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# OS cruft
+.DS_Store
+Thumbs.db
