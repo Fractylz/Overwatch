@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overwatch | Watch Listing Studio</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='studio.css') }}">
+<script src="{{ url_for('static', filename='studio.js') }}" defer></script>
+</head>
+<body>
+<header><a class="wordmark" href="/">OVERWATCH</a><nav aria-label="Main navigation">
+<a href="#studio">Studio</a><a href="#drafts">Saved drafts</a><a href="#evaluation">Evaluation</a>
+</nav></header>
+<main>
+<section class="intro" id="studio">
+<h1>Watch listing studio</h1>
+<p>Identify a watch from a photo, review comparable asking prices, and save a draft.</p>
+</section>
+<div class="workspace">
+<section class="panel" aria-labelledby="photo-heading">
+<h2 id="photo-heading">Watch photograph</h2>
+<form id="scan-form">
+<label class="upload">Choose a watch photo<input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+<div id="preview" hidden><img alt="Uploaded watch"><span id="box" hidden></span></div>
+<button type="submit">Analyze photo</button>
+</form>
+<p id="scan-status" role="status"></p>
+<div id="suggestions" class="suggestions"></div>
+</section>
+<section class="panel" aria-labelledby="details-heading">
+<h2 id="details-heading">Listing details</h2>
+<form id="match-form"><label for="lookup">Model name or reference</label>
+<div class="inline"><input id="lookup" placeholder="e.g. Rolex Datejust 41" required><button class="secondary">Match</button></div>
+<p id="match-status" role="status"></p></form>
+<form id="listing">
+<div class="fields">
+<label>Brand<input name="brand" list="brands" required><datalist id="brands"></datalist></label>
+<label>Model or family<input name="model_family" list="families" required><datalist id="families"></datalist></label>
+<label>Reference (optional)<input name="reference"></label>
+<label>Production year (optional)<input name="year" type="number" min="1750" max="2100" placeholder="Unknown"></label>
+</div>
+<details><summary>Additional watch details</summary><div class="fields">
+<label>Case diameter (mm)<input type="number" name="size_mm" min="5" max="100" step="0.1"></label>
+<label>Condition<select name="condition"><option>Unknown</option><option>Used</option><option>New</option></select></label>
+<label>Case material<input name="material" list="materials"><datalist id="materials">{% for material in materials %}<option value="{{ material }}">{% endfor %}</datalist></label>
+<label>Box and papers<select name="box_papers"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
+</div></details>
+<div class="actions"><button type="submit">Review pricing</button><button class="secondary" id="save" type="button">Save draft</button></div>
+<p id="listing-status" role="status"></p>
+</form>
+<section id="pricing" hidden aria-label="Pricing evidence"></section>
+</section>
+</div>
+<section class="panel wide" id="drafts"><h2>Saved drafts</h2>
+<label>Search drafts<input id="draft-search" type="search" placeholder="Brand, model, or reference"></label>
+<div id="draft-table"></div><a id="export" download="watch-listings.json" hidden>Download drafts</a>
+</section>
+<section class="panel wide" id="evaluation"><h2>Model evaluation</h2><div id="metrics" class="fields"></div></section>
+</main>
+</body>
+</html>

@@ -1,49 +1,39 @@
-"""
-ocr/read.py - dial-text OCR, nothing else.
-
-Exposes read_text(crop, brand) -> {ocr_text, candidate_model}
-The EasyOCR reader loads once when this module is imported.
-"""
+from functools import lru_cache
+import json
+import os
+from pathlib import Path
+import subprocess
+from tempfile import TemporaryDirectory
 
 import numpy as np
-import easyocr
-
-# dial boilerplate to ignore when guessing a model name
-_STOPWORDS = {
-    "swiss",
-    "made",
-    "automatic",
-    "chronometer",
-    "chronograph",
-    "watch",
-    "quartz",
-    "superlative",
-    "officially",
-    "certified",
-    "cosc",
-    "water",
-    "resistant",
-    "geneve",
-    "paris",
-    "date",
-}
-
-_reader = easyocr.Reader(["en"], gpu=False)  # CPU-only
 
 
-def read_text(crop, brand):
-    """OCR the crop; return raw tokens + a best-effort model-name guess."""
-    tokens = [
-        t.strip() for t in _reader.readtext(np.array(crop), detail=0) if t.strip()
-    ]
-    brand_words = set(brand.lower().replace("-", "_").split("_"))
-    candidates = [
-        t
-        for t in tokens
-        if t.isalpha()
-        and len(t) > 3
-        and t.lower() not in _STOPWORDS
-        and t.lower() not in brand_words
-    ]
-    candidate_model = max(candidates, key=len).title() if candidates else None
-    return {"ocr_text": tokens, "candidate_model": candidate_model}
+@lru_cache(maxsize=1)
+def reader():
+    import easyocr
+    return easyocr.Reader(["en"], gpu=False)
+
+
+def windows_words(image):
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "watch.png"
+        photo = image.copy()
+        photo.thumbnail((2400, 2400))
+        photo.save(path)
+        output = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+             Path(__file__).with_name("windows_ocr.ps1").read_text(encoding="utf-8")],
+            env={**os.environ, "OVERWATCH_OCR_IMAGE": str(path)},
+            capture_output=True, timeout=30, check=True, encoding="utf-8")
+    return json.loads(output.stdout)
+
+
+def read_text(crop, brand=""):
+    image = crop.convert("RGB")
+    if os.name == "nt":
+        try:
+            return {"ocr_text": windows_words(image)}
+        except (subprocess.SubprocessError, OSError, ValueError):
+            pass
+    words = reader().readtext(np.array(image), detail=0)
+    return {"ocr_text": [s.strip() for s in words if s.strip()]}
